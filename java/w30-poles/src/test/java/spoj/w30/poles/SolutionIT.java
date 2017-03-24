@@ -5,11 +5,8 @@
  */
 package spoj.w30.poles;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
+
 import static org.junit.Assert.*;
 
 public class SolutionIT {
@@ -39,13 +36,53 @@ public class SolutionIT {
     @Test
     public void testCost() {
         System.out.println("cost");
-        int[] X = {20, 30, 40};
-        int[] W = {1, 1, 1};
+        long[] X = {40L, 30L, 20L};
+        long[] W = {1L, 1L, 1L};
         int K = 2;
         Solution instance = new Solution();
         int expResult = 10;
-        int result = instance.cost(X, W, K);
+        long result = instance.cost(X, W, K);
         assertEquals(expResult, result);
     }
+
+    @Test
+    public void testLineSet() {
+        LineSet e = new LineSet();
+        e.addLine(StraightLine.create(1, -40));
+        e.addLine(StraightLine.create(2, -60));
+        Assert.assertEquals(2, e.size());
+        long minVal = e.getMinVal(50);
+        Assert.assertEquals(10, minVal);
+        Assert.assertEquals(2, e.size());
+        long minVal2 = e.getMinVal(20);
+        Assert.assertEquals(-20, minVal2);
+        Assert.assertEquals(1, e.size());
+        long minVal3 = e.getMinVal(10);
+        Assert.assertEquals(-40, minVal3);
+        Assert.assertEquals(1, e.size());
+    }
+
+
+    @Test
+    public void testAddLine() {
+        LineSet e = new LineSet();
+        e.addLine(StraightLine.create(1, -40));
+        e.addLine(StraightLine.create(2, -60));
+        e.addLine(StraightLine.create(3, -90));
+        Assert.assertEquals(2, e.size());
+        Assert.assertEquals(-30, e.getMinVal(20));
+        Assert.assertEquals(1, e.size());
+    }
+
+
+    @Test
+    public void testAddLine2() {
+        LineSet e = new LineSet();
+        e.addLine(StraightLine.create(1, -40));
+        e.addLine(StraightLine.create(2, -60));
+        e.addLine(StraightLine.create(5, -100));
+        Assert.assertEquals(3, e.size());
+    }
+
     
 }
