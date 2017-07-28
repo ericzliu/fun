@@ -56,7 +56,7 @@ class MinCut(object):
 
     def min_cut(self):
         while len(self._nodes) > 2 and len(self._arcs) > 0:
-            pass
+            self._contraction()
         if len(self._nodes) == 2:
             return self.count_cut()
         return 0
