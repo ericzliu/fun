@@ -27,7 +27,7 @@ class Random(object):
         random.seed(seed)
 
     def randint(self, first, last):
-        random.randint(first, last)
+        return random.randint(first, last)
 
 class AlwaysFirst(object):
     def __init__(self):
@@ -92,7 +92,7 @@ class MinCut(object):
                 self._read_single(node_list)
 
     def min_cut(self):
-        self._print_graph()
+        #self._print_graph()
         while len(self._nodes) > 2 and len(self._arcs) > 0:
             self._contraction()
         if len(self._nodes) == 2:
@@ -107,7 +107,7 @@ class MinCut(object):
         if node_to_keep.id > node_to_delete.id:
             node_to_keep, node_to_delete = node_to_delete, node_to_keep
         self._update_graph(node_to_keep, node_to_delete)
-        self._print_graph()
+        #self._print_graph()
 
     @staticmethod
     def _remove_self_arcs(_arcs):
@@ -174,5 +174,33 @@ class TestMinCut(unittest.TestCase):
         mincut.read_file('complete_4.txt')
         self.assertEqual(3, mincut.min_cut())
 
+    def test_link_complete(self):
+        rand = AlwaysFirst()
+        mincut = MinCut(rand)
+        mincut.read_file('link_complete_4.txt')
+        self.assertEqual(4, mincut.min_cut())
+
+    def test_link_complete2(self):
+        rand = AlwaysLast()
+        mincut = MinCut(rand)
+        mincut.read_file('link_complete_4.txt')
+        self.assertEqual(3, mincut.min_cut())
+
+    def test_link_complete_ran(self):
+        # seeds = [178303, 385231, 881411, 152779, 879170, 291781, 665125, 343977]
+        rand = Random(291781)
+        mincut = MinCut(rand)
+        mincut.read_file('link_complete_4.txt')
+        self.assertEqual(2, mincut.min_cut())
+
+
 if __name__=='__main__':
-    unittest.main()
+#    unittest.main()
+    seeds = [random.randint(0, 99999) for i in range(200)]
+    res = []
+    for seed in seeds:
+        rand = Random(seed)
+        mincut = MinCut(rand)
+        mincut.read_file('kargerMinCut.txt')
+        res.append(mincut.min_cut())
+    print(min(res))
