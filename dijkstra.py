@@ -2,8 +2,7 @@
 Dijkstra single source shortest path algorithm
 Use heap to make the complexity O(m log n)
 """
-
-FILE_NAME = 'dijkstra_tc1.txt'
+import unittest
 
 class Node(object):
     """
@@ -128,15 +127,19 @@ class Heap(object):
         node = u[heap_ind]
         node.heap_ind = -1
         if self.size > 1:
-            u[heap_ind] = u[self.size - 1]
-            u[heap_ind].heap_ind = heap_ind
-            u[self.size - 1] = None
-            self.size -= 1
-            parent_ind = self._parent_ind(heap_ind)
-            if parent_ind and u[heap_ind].heap_key < u[parent_ind].heap_key:
-                self._sift_up(heap_ind)
+            if heap_ind != (self.size - 1):
+                u[heap_ind] = u[self.size - 1]
+                u[heap_ind].heap_ind = heap_ind
+                u[self.size - 1] = None
+                self.size -= 1
+                parent_ind = self._parent_ind(heap_ind)
+                if parent_ind is not None and u[heap_ind].heap_key < u[parent_ind].heap_key:
+                    self._sift_up(heap_ind)
+                else:
+                    self._sift_down(heap_ind)
             else:
-                self._sift_down(heap_ind)
+                u[self.size - 1] = None
+                self.size -= 1
         else:
             u[self.size - 1] = None
             self.size = 0
@@ -156,17 +159,14 @@ class Dijkstra(object):
         while node_heap.size > 0:
             node = node_heap.extract()
             node.processed = True
-            nodes_to_delete = []
             nodes_to_add = []
             for edge in node.edges:
                 neighbor = edge.head
                 if neighbor.heap_ind != -1:
-                    nodes_to_delete.append(neighbor)
+                    node_heap.delete(neighbor.heap_ind)
                 if not neighbor.processed:
                     neighbor.heap_key = min(neighbor.heap_key, node.heap_key + edge.length)
                     nodes_to_add.append(neighbor)
-            for node_to_delete in nodes_to_delete:
-                node_heap.delete(node_to_delete.heap_ind)
             for node_to_add in nodes_to_add:
                 node_to_add.explored = True
                 node_heap.insert(node_to_add)
@@ -205,9 +205,48 @@ def read_graph(filename):
     graph.edges = edges
     return graph
 
+class TestDijkstra(unittest.TestCase):
+    def test_tc1(self):
+        dijkstra = read_graph('dijkstra_tc1.txt')
+        dijkstra.run(1)
+        dist = dijkstra.result()
+        self.assertEqual(0, dist[1])
+        self.assertEqual(1, dist[2])
+        self.assertEqual(2, dist[3])
+        self.assertEqual(3, dist[4])
+        self.assertEqual(4, dist[5])
+        self.assertEqual(4, dist[6])
+        self.assertEqual(3, dist[7])
+        self.assertEqual(2, dist[8])
+
+    def test_tc2(self):
+        dijkstra = read_graph('dijkstra_tc2.txt')
+        dijkstra.run(1)
+        dist = dijkstra.result()
+        self.assertEqual(0, dist[1])
+        self.assertEqual(3, dist[2])
+        self.assertEqual(5, dist[3])
+        self.assertEqual(7, dist[6])
+        self.assertEqual(11, dist[7])
+        self.assertEqual(4, dist[8])
+        self.assertEqual(6, dist[9])
+        self.assertEqual(10, dist[10])
+        self.assertEqual(10, dist[11])
+
+    def test_tc3(self):
+        dijkstra = read_graph('dijkstraData.txt')
+        dijkstra.run(1)
+        dist = dijkstra.result()
+        self.assertEqual(2599, dist[7])
+        self.assertEqual(2610, dist[37])
+        self.assertEqual(2947, dist[59])
+        self.assertEqual(2052, dist[82])
+        self.assertEqual(2367, dist[99])
+        self.assertEqual(2399, dist[115])
+        self.assertEqual(2029, dist[133])
+        self.assertEqual(2442, dist[165])
+        self.assertEqual(2505, dist[188])
+        self.assertEqual(3068, dist[197])
+        
 if __name__=='__main__':
-    dijkstra = read_graph(FILE_NAME)
-    dijkstra.run(1)
-    dist = dijkstra.result()
-    for node_id, dist in dist.items():
-        print(str(node_id) + ': ' + str(dist))
+    unittest.main()
