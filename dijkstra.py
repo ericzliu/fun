@@ -3,6 +3,8 @@ Dijkstra single source shortest path algorithm
 Use heap to make the complexity O(m log n)
 """
 
+FILE_NAME = 'dijkstra_tc1.txt'
+
 class Node(object):
     """
     The node
@@ -39,9 +41,9 @@ class Heap(object):
         self.size = 0
 
     def _increment_size(self):
-        if self.size < len(self.underlying):
-            return
         self.size += 1
+        if self.size <= len(self.underlying):
+            return
         while len(self.underlying) < self.size:
             self.underlying.append(None)
 
@@ -52,7 +54,7 @@ class Heap(object):
 
     def _sift_up(self, node_ind):
         parent_ind = self._parent_ind(node_ind)
-        if parent_ind:
+        if parent_ind is not None:
             u = self.underlying
             if u[parent_ind].heap_key > u[node_ind].heap_key:
                 u[parent_ind], u[node_ind] = u[node_ind], u[parent_ind]
@@ -86,11 +88,11 @@ class Heap(object):
         right_ind = self._right_ind(parent_ind)
         min_ind = parent_ind
         u = self.underlying
-        if left_ind and u[left_ind].heap_key < u[min_ind].heap_key:
+        if left_ind is not None and u[left_ind].heap_key < u[min_ind].heap_key:
             min_ind = left_ind
-        if right_ind and u[right_ind].heap_key < u[min_ind].heap_key:
+        if right_ind is not None and u[right_ind].heap_key < u[min_ind].heap_key:
             min_ind = right_ind
-        if not min_ind == parent_ind:
+        if min_ind != parent_ind:
             u[parent_ind], u[min_ind] = u[min_ind], u[parent_ind]
             u[parent_ind].heap_ind = parent_ind
             u[min_ind].heap_ind = min_ind
@@ -105,11 +107,15 @@ class Heap(object):
         u = self.underlying
         min_node = u[0]
         min_node.heap_ind = -1
-        u[0] = u[self.size - 1]
-        u[0].heap_ind = 0
-        u[self.size - 1] = None
-        self.size -= 1
-        self._sift_down(0)
+        if self.size > 1:
+            u[0] = u[self.size - 1]
+            u[0].heap_ind = 0
+            u[self.size - 1] = None
+            self.size -= 1
+            self._sift_down(0)
+        else:
+            u[self.size - 1] = None
+            self.size = 0
         return min_node
 
     def delete(self, heap_ind):
@@ -121,24 +127,29 @@ class Heap(object):
         u = self.underlying
         node = u[heap_ind]
         node.heap_ind = -1
-        u[heap_ind] = u[self.size - 1]
-        u[heap_ind].heap_ind = heap_ind
-        u[self.size - 1] = None
-        self.size -= 1
-
-        parent_ind = self._parent_ind(heap_ind)
-        if parent_ind and u[heap_ind].heap_key < u[parent_ind].heap_key:
-            self._sift_up(heap_ind)
+        if self.size > 1:
+            u[heap_ind] = u[self.size - 1]
+            u[heap_ind].heap_ind = heap_ind
+            u[self.size - 1] = None
+            self.size -= 1
+            parent_ind = self._parent_ind(heap_ind)
+            if parent_ind and u[heap_ind].heap_key < u[parent_ind].heap_key:
+                self._sift_up(heap_ind)
+            else:
+                self._sift_down(heap_ind)
         else:
-            self._sift_down(heap_ind)
+            u[self.size - 1] = None
+            self.size = 0
+        return node
 
 class Dijkstra(object):
     def __init__(self):
-        self.nodes = []
+        self.nodes = {}
         self.edges = []
 
-    def run(self, source_node):
+    def run(self, source_node_id):
         node_heap = Heap()
+        source_node = self.nodes[source_node_id]
         source_node.heap_key = 0
         source_node.explored = True
         node_heap.insert(source_node)
@@ -148,7 +159,7 @@ class Dijkstra(object):
             nodes_to_delete = []
             nodes_to_add = []
             for edge in node.edges:
-                neighbor = edge.tail
+                neighbor = edge.head
                 if neighbor.heap_ind != -1:
                     nodes_to_delete.append(neighbor)
                 if not neighbor.processed:
@@ -161,12 +172,42 @@ class Dijkstra(object):
                 node_heap.insert(node_to_add)
 
     def reset(self):
-        for node in self.nodes:
+        for node in self.nodes.values():
             node.reset()
 
     def result(self):
-        id_dist = []
-        for node in self.nodes:
+        id_dist = {}
+        for node_id, node in self.nodes.items():
             if node.processed:
-                id_dist.append((node.node_id, node.heap_key))
+                id_dist[node_id] = node.heap_key
         return id_dist
+
+def read_graph(filename):
+    nodes = {}
+    edges = []
+    with open(filename) as fin:
+        for line in fin:
+            adj_list = line.split()
+            tail_id = int(adj_list[0])
+            if not nodes.get(tail_id):
+                nodes[tail_id] = Node(tail_id)
+            tail = nodes[tail_id]
+            for ind in range(1, len(adj_list)):
+                head_id, length = [int(x) for x in adj_list[ind].split(',')]
+                if not nodes.get(head_id):
+                    nodes[head_id] = Node(head_id)
+                head = nodes[head_id]
+                edge = Edge(tail, head, length)
+                tail.edges.append(edge)
+                edges.append(edge)
+    graph = Dijkstra()
+    graph.nodes = nodes
+    graph.edges = edges
+    return graph
+
+if __name__=='__main__':
+    dijkstra = read_graph(FILE_NAME)
+    dijkstra.run(1)
+    dist = dijkstra.result()
+    for node_id, dist in dist.items():
+        print(str(node_id) + ': ' + str(dist))
