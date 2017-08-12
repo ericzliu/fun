@@ -126,23 +126,19 @@ class Heap(object):
         u = self.underlying
         node = u[heap_ind]
         node.heap_ind = -1
-        if self.size > 1:
-            if heap_ind != (self.size - 1):
-                u[heap_ind] = u[self.size - 1]
-                u[heap_ind].heap_ind = heap_ind
-                u[self.size - 1] = None
-                self.size -= 1
-                parent_ind = self._parent_ind(heap_ind)
-                if parent_ind is not None and u[heap_ind].heap_key < u[parent_ind].heap_key:
-                    self._sift_up(heap_ind)
-                else:
-                    self._sift_down(heap_ind)
+        if heap_ind != (self.size - 1):
+            u[heap_ind] = u[self.size - 1]
+            u[heap_ind].heap_ind = heap_ind
+            u[self.size - 1] = None
+            self.size -= 1
+            parent_ind = self._parent_ind(heap_ind)
+            if parent_ind is not None and u[heap_ind].heap_key < u[parent_ind].heap_key:
+                self._sift_up(heap_ind)
             else:
-                u[self.size - 1] = None
-                self.size -= 1
+                self._sift_down(heap_ind)
         else:
             u[self.size - 1] = None
-            self.size = 0
+            self.size -= 1
         return node
 
 class Dijkstra(object):
